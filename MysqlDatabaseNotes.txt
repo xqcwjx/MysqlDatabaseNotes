@@ -1,0 +1,230 @@
+mysql登录
+	服务器本地登录：mysql -uroot -p123456
+	客户端登录：mysql -uroot -p123456 -h192.168.137.139
+
+mysql库的（创建，查看，删除）
+	参看当前用户下的库：show  databases; 
+	创建库：create database  mydb1 ;
+	查看数据库的创建：show database mydb1;
+	创建是默认的字符集是latin1,不支持中文,需要设置utf8字符集：alter database mydb1 character set utf8;
+	也可以在创建库时指定字符集：create database  mydb1 character set utf8  ;
+	删除库：drop database mydb1;
+
+mysql表的（创建，插入，查看,修改，删除，查看库）
+	选择库：use  mydb1
+	创建表：create  table  ma (id  int,name  varchar(20));
+
+		bit     1位　	可以指定位数，如：bit(3)
+		int     2字节 	可以指定最大位数，如：int<4>　最大为4位的整数
+		float   2个字节　可以指定最大的位数和最大的小数位数，如：float<5,2> 最大为一个5位的数，小数位最多2位 
+		double　4个字节　可以指定最大的位数和最大的小数位数，如：float<6,4> 最大为一个6位的数，小数位最多4位
+		char　  必须指定字符数,如char(5) 为不可变字符　即使存储的内容为'ab',也是用5个字符的空间存储这个数据
+		varchar　必须指定字符数,如varchar(5) 为可变字符　如果存储的内容为'ab',占用2个字符的空间；如果为'abc',则占用3个字符的空间
+		text: 大文本(大字符串)
+		blob：二进制大数据　如图片，音频文件，视频文件
+		date: 日期　如：'1921-01-02'
+		datetime: 日期+时间　如：'1921-01-02 12:23:43'
+		timeStamp: 时间戳，自动赋值为当前日期时间
+	
+	插入表：insert into ma values(1,'lucy'); 
+	查看库下的表：show tables;
+	查看表信息：select * from ma;
+	修改表
+		更改表名：    rename table ma to hang;
+		增加一个字段：alter table hang add column ma double;   （column关键字在Oracle中，添加则语法错误）
+		修改一个字段：alter table hang modify column ma float;
+		删除一个字段：alter table hang drop column ma;
+		修改表的字符集:alter table hang character set gbk;
+	删除表：drop table hang;
+
+更新数据
+	update数据 
+		将所有员工薪水都增加500元：update ma set salary=salary+500;
+		将王五的员工薪水修改为10000元，resume改为也是一个中牛：update ma set salary=10000, resume='也是一个中牛' where name='bbb';	
+	delete数据 
+		删除表中姓名为王五的记录：delete from ma where name='王五';		【注意from不能省略】
+		删除表中所有记录：delete from ma; 
+		使用truncate删除表中记录：truncate ma;--无条件 效率高
+	
+时间函数
+	now() // 获取当前时间
+		select now(), year(now()) 年, month(now()) 月, day(now()) 日, date(now());
+		+---------------------+------+------+------+----------------+
+		| now()               | 年   | 月   | 日   | date(now()) 		|
+		+---------------------+------+------+------+----------------+
+		| 2021-05-08 20:48:55 | 2021 |    5 |    8 | 2021-05-08            |
+		+---------------------+------+------+------+----------------+
+			date_add( now(), interval 1 day|month|year);//加一年或一天或一月
+			date_add( now(), interval -1 day|month|year);//减一年或一天或一月
+			addtime(now(), 'h:m:s')
+		select now(), addtime(now(),1) from dual;
+		+---------------------+------------------------+
+		| now()               | addtime(now(),1)   	         |
+		+---------------------+------------------------+
+		| 2021-05-08 20:53:02 | 2021-05-08 20:53:03 |
+		+---------------------+------------------------+
+		select now(), addtime(now(),60) from dual;
+		+---------------------+-------------------+
+		| now()               | addtime(now(),60) |
+		+---------------------+-------------------+
+		| 2021-05-08 20:57:33 | NULL              |
+		+---------------------+-------------------+
+		select now(), addtime(now(),'0:1:0') from dual;
+		+---------------------+------------------------+
+		| now()               | addtime(now(),'0:1:0') |
+		+---------------------+------------------------+
+		| 2021-05-08 20:58:54 | 2021-05-08 20:59:54    |
+		+---------------------+------------------------+
+		select now(), addtime(now(),'1:0:0') from dual;
+		+---------------------+------------------------+
+		| now()               | addtime(now(),'1:0:0') |
+		+---------------------+------------------------+
+		| 2021-05-08 21:00:03 | 2021-05-08 22:00:03    |
+		+---------------------+------------------------+
+	字符串转日期
+		select str_to_date('2013-6-19 06:01:09','%Y-%c-%d %h:%i:%s') from dual;
+		+-------------------------------------------------------+
+		| str_to_date('2013-6-19 06:01:09','%Y-%c-%d %h:%i:%s') |
+		+-------------------------------------------------------+
+		| 2013-06-19 06:01:09                                   |
+		+-------------------------------------------------------+
+	日期转字符串：select date_format(now(), '%Y-%m-%d') from dual; 		
+ 	y和Y不一样：select date_format(now(), '%Y-%c-%d %h:%i:%s') from dual; 	 c和m、M不一样	
+
+
+
+day
+	多表查询
+		内连接  和oracle的等值连接是一样的
+		查询员工信息,员工号,姓名,月薪,部门名称
+		oracle等值连接:select  e.ename,e.empno,e.sal,d.dname from emp e,dept d where e.deptno=d.deptno;
+		mysql  内连接:
+			select  e.ename,e.empno,e.sal,d.dname from emp e inner join dept d where e.deptno=d.deptno;
+			select  e.ename,e.empno,e.sal,d.dname from emp e inner join dept d on  e.deptno=d.deptno;
+
+ 		inner join 替换两个表中间的逗号连接符
+		on 代替where
+		
+		求各个部门的员工总数
+		oracle的右外连接:select d.deptno,count(e.ename)   from emp e ,dept d where e.deptno(+)=d.deptno group by d.deptno;
+		mysql的右外连接:select d.deptno,count(e.ename)   from emp e right outer join dept d on e.deptno=d.deptno group by d.deptno;
+		注意:  右外连接条件不可以写 where  写on
+
+		左外连接和右外连接
+		“xxx left outer join yyy” 则为取出xxx的内容。
+		“xxx right outer join yyy”则为取出yyy的内容
+
+		xxx的老板是xxx
+		oracle:select e.ename || '的老板是' ||nvl(b.ename,'自己') )  from emp e  , emp b on e.mgr=b.empno(+);
+		mysql:select  concat(e.ename , '的老板是' ,ifnull(b.ename,'自己') )  from emp e   left outer join emp b on e.mgr=b.empno;
+	表的约束
+		表的约束
+			*定义主键约束　primary key:	不允许为空，不允许重复            *定义主键自动增长　auto_increment
+			*定义唯一约束　unique				 *定义非空约束　not null
+			*定义外键约束　constraint ordersid_FK foreign key(ordersid) references orders(id)
+			*删除主键：alter table tablename drop primary key ;
+		MySQL中约束举例：
+			create table myclass(id int(11) primary key auto_increment,
+				name varchar(20) unique);
+			create table student(id int(11) primary key auto_increment,
+				name varchar(20) unique,
+				passwd varchar(15)not null,
+				classid int(11),constraint stu_classid_FK foreign key(classid) references myclass(id));	
+			check约束在MySQL中语法保留，但没有效果。
+	字符集乱码
+		1 登入数据库客户端
+			登入的字符集不一致,会导致乱码
+		2 系统环境的字符集也会影响mysql的字符集
+	编写客户端
+		编写客户端的流程
+		1. 初始化mysql   2. 连接服务器   3. 设置字符集   4. 循环等待从终端sql命令   5. 执行命令
+		6. 获取结果集	a. 返回值不为NULL打印行和列	b. CONTINUE
+		7. 释放结果集	8. 关闭mysql句柄
+	数据库的增删改查
+		1   初始化mysql   2 连接数据库(服务器)   3 执行语句   4 关闭连接
+		使用 locate 命令查找头文件路径:
+			头文件  mysql.h     路径: /usr/include/mysql/mysql.h
+			库名  libmysqlclient.a   路径/usr/lib64/mysql/libmysqlclient.a
+
+		MYSQL *mysql_init(MYSQL *mysql) 
+		函数功能: 初始化数据库
+			参数: mysql   填NULL
+		返回值: MYSQL 句柄
+
+		MYSQL *mysql_real_connect(MYSQL *mysql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned long client_flag) 
+		功能: 连接服务器
+		参数:
+			mysql:mysql_init返回的句柄
+			host: 服务器的ip地址
+			user: mysql的用户名 root
+			passwd: mysql root用户的密码
+			db: 数据库的库名
+			port: 0 
+				mysql: 3066
+				oracle: 1521
+			unix_socket,NULL
+			client_flag: 0
+		返回值: 成功返回MYSQL句柄 失败返回NULL
+		
+		void mysql_close(MYSQL *mysql) 
+		功能：关闭连接
+		参数: MYSQL 句柄
+
+		int mysql_query(MYSQL *mysql, const char *query) 
+		功能: 把需要执行的命令传送给服务器
+		参数:
+			mysql: MYSQL句柄
+			query: 需要执行的语句
+		返回值:成功返回0 失败返回非0
+
+		int mysql_set_character_set(MYSQL *mysql, char *csname) 
+		功能: 设置登入字符集
+		参数:
+			mysql: MYSQL句柄
+			csname: 字符集
+		返回值:0表示成功，非0值表示出现错误
+
+		MYSQL_RES *mysql_store_result(MYSQL *mysql) 
+		返回结果集:
+			参数: MYSQL 句柄
+			返回值: 结果集的地址
+
+		释放结果集：void mysql_free_result(MYSQL_RES *result) 
+
+		MYSQL_ROW mysql_fetch_row(MYSQL_RES *result) 
+		函数功能:
+			获取返回的一行数据
+			result: 结果集
+			返回值:MYSQL_ROW  char **
+		MYSQL_ROW指针指向指针数组的首元素的地址
+
+		" 7369 "        " SMITH"  " CLERK"     " 7902 "  1980-12-17 |  800 | NULL |     2
+
+		unsigned int mysql_num_fields(MYSQL_RES *result) 
+		功能: 获取返回结果集的列数
+		参数: result 结果集
+
+		MYSQL_FIELD *mysql_fetch_fields(MYSQL_RES *result) 
+		函数功能: 用来获取列信息
+		参数: 返回的结果集
+		返回值: MYSQL_FIELD 数组首元素的地址
+
+		my_ulonglong mysql_affected_rows(MYSQL *mysql) 
+		功能: 获取执行结果更新的行数
+	sql预处理
+		1、即时 SQL
+			一条 SQL 在 DB 接收到最终执行完毕返回，大致的过程如下：
+		1. 词法和语义解析；
+	2. 优化 SQL 语句，制定执行计划；
+	3. 执行并返回结果；
+		如上，一条 SQL 直接是走流程处理，一次编译，单次运行，此类普通语句被称作 Immediate Statements （即时 SQL）。
+	2、预处理 SQL
+		但是，绝大多数情况下，某需求某一条 SQL 语句可能会被反复调用执行，或者每次执行的时候只有个别的值不同（比如 select 的 where 子句值不同，update 的 set 子句值不同，insert 的 values 值不同）。如果每次都需要经过上面的词法语义解析、语句优化、制定执行计划等，则效率就明显不行了。
+		所谓预编译语句就是将此类 SQL 语句中的值用占位符替代，可以视为将 SQL 语句模板化或者说参数化，一般称这类语句叫Prepared Statements。
+		预编译语句的优势在于归纳为：一次编译、多次运行，省去了解析优化等过程；此外预编译语句能防止 SQL 注入。	
+	mysql事物
+		mysql默认不开起事物:
+
+		可以设置开启事物
+		set  autocommit=0; //开启事物  手动提交
+		set  autocommit=1; //没有开启事物  自动提交
